@@ -1,0 +1,29 @@
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env.*
+!.env.example
+
+# Operating system
+.DS_Store
+Thumbs.db
