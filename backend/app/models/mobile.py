@@ -1,3 +1,4 @@
+
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -9,6 +10,7 @@ from sqlalchemy import (
     DateTime,
     Numeric
 )
+
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
@@ -26,17 +28,20 @@ class Mobile(Base):
 
     seller_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     brand: Mapped[str] = mapped_column(
         String(100),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     model: Mapped[str] = mapped_column(
         String(100),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     price: Mapped[Decimal] = mapped_column(
@@ -57,11 +62,12 @@ class Mobile(Base):
     status: Mapped[str] = mapped_column(
         String(30),
         default="available",
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc)
     )
 
@@ -93,12 +99,18 @@ class MobileImage(Base):
 
     mobile_id: Mapped[int] = mapped_column(
         ForeignKey("mobiles.id"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     image_url: Mapped[str] = mapped_column(
         String(500),
         nullable=False
+    )
+
+    public_id: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True
     )
 
     mobile = relationship(

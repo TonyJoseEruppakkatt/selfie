@@ -12,3 +12,4 @@ httpx
 ruff
 alembic
 playwright
+cloudinary

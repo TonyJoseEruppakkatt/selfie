@@ -9,6 +9,9 @@ from sqlalchemy.orm import Session
 from app.core.logging_config import configure_logging
 from app.database.session import get_db
 from app.routers.auth import router as auth_router
+from app.routers.mobiles import router as mobile_router
+from fastapi.openapi.utils import get_openapi
+
 
 
 # Configure logging
@@ -83,3 +86,39 @@ def database_health(
             status_code=503,
             detail="Database connection unavailable"
         )
+app.include_router(mobile_router)
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+
+    def fix_upload_schema(schema):
+        if isinstance(schema, dict):
+            if (
+                schema.get("type") == "string"
+                and schema.get("contentMediaType") == "application/octet-stream"
+            ):
+                schema.pop("contentMediaType", None)
+                schema["format"] = "binary"
+
+            for value in schema.values():
+                fix_upload_schema(value)
+
+        elif isinstance(schema, list):
+            for item in schema:
+                fix_upload_schema(item)
+
+    fix_upload_schema(openapi_schema)
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
