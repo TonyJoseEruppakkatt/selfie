@@ -11,6 +11,7 @@ from app.database.session import get_db
 from app.routers.auth import router as auth_router
 from app.routers.mobiles import router as mobile_router
 from fastapi.openapi.utils import get_openapi
+from app.routers.purchase_requests import router as purchase_request_router
 
 
 
@@ -122,3 +123,4 @@ def custom_openapi():
 
 
 app.openapi = custom_openapi
+app.include_router(purchase_request_router)
