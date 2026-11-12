@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.logging_config import configure_logging
 from app.database.session import get_db
+from app.routers.auth import router as auth_router
 
 
 # Configure logging
@@ -16,7 +17,7 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-# Initialize FastAPI
+# Initialize application
 app = FastAPI(
     title="Selfie API",
     description="Used Mobile Buying and Selling Platform",
@@ -27,18 +28,21 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# Homepage
+# Register authentication router
+app.include_router(auth_router)
+
+
 @app.get("/")
 def home():
-
-    logger.info("Selfie API homepage accessed")
 
     return {
         "message": "Welcome to Selfie API",
@@ -46,7 +50,6 @@ def home():
     }
 
 
-# Application health check
 @app.get("/health")
 def health_check():
 
@@ -56,15 +59,16 @@ def health_check():
     }
 
 
-# Database health check
 @app.get("/health/database")
-def database_health(db: Session = Depends(get_db)):
+def database_health(
+    db: Session = Depends(get_db)
+):
 
     try:
 
         db.execute(text("SELECT 1"))
 
-        logger.info("MySQL database connection successful")
+        logger.info("MySQL connection successful")
 
         return {
             "status": "connected",
@@ -73,7 +77,7 @@ def database_health(db: Session = Depends(get_db)):
 
     except Exception:
 
-        logger.exception("MySQL database connection failed")
+        logger.exception("MySQL connection failed")
 
         raise HTTPException(
             status_code=503,

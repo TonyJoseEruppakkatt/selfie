@@ -10,5 +10,5 @@ email-validator
 pytest
 httpx
 ruff
-playwright
 alembic
+playwright
