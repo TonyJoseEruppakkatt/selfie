@@ -210,6 +210,55 @@ def get_mobiles(
         "items": mobiles,
     }
 
+def get_my_mobiles(
+    db: Session,
+    seller: User,
+    page: int = 1,
+    page_size: int = 20,
+) -> dict:
+    """
+    Return the logged-in seller's listings.
+
+    Available and sold listings are included.
+    Removed listings are excluded.
+    """
+
+    statement = (
+        select(Mobile)
+        .options(
+            selectinload(Mobile.images),
+            selectinload(Mobile.seller),
+        )
+        .where(
+            Mobile.seller_id == seller.id,
+            Mobile.status != "removed",
+        )
+        .order_by(Mobile.created_at.desc())
+    )
+
+    count_statement = (
+        select(func.count())
+        .select_from(statement.order_by(None).subquery())
+    )
+
+    total = db.scalar(count_statement) or 0
+
+    total_pages = math.ceil(total / page_size) if total else 0
+
+    statement = statement.offset(
+        (page - 1) * page_size
+    ).limit(page_size)
+
+    mobiles = db.scalars(statement).all()
+
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages,
+        "items": mobiles,
+    }
+
 
 def get_mobile_details(
     db: Session,

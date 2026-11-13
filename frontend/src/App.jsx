@@ -10,6 +10,11 @@ import SellMobile from "./pages/SellMobile";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
+import MyListings from "./pages/MyListings";
+import EditMobile from "./pages/EditMobile";
+import BuyerRequests from "./pages/BuyerRequests";
+import SellerRequests from "./pages/SellerRequests";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
   return (
@@ -47,6 +52,46 @@ function App() {
             <div className="container text-center py-5">
               <h2>Page not found</h2>
             </div>
+          }
+        />
+        <Route
+          path="/my-listings"
+          element={
+            <ProtectedRoute>
+              <MyListings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/edit-mobile/:mobile_id"
+          element={
+            <ProtectedRoute>
+              <EditMobile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/buyer-requests"
+          element={
+            <ProtectedRoute>
+              <BuyerRequests />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/seller-requests"
+          element={
+            <ProtectedRoute>
+              <SellerRequests />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
           }
         />
       </Routes>

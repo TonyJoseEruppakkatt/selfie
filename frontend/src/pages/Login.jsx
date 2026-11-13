@@ -25,7 +25,7 @@ function Login() {
 
       await login(data.access_token);
 
-      navigate("/");
+      navigate("/dashboard");
 
     } catch (err) {
       setError(

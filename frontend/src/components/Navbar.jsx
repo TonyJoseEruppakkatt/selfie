@@ -48,6 +48,18 @@ function Navbar() {
                   Sell Mobile
                 </Link>
 
+                <Link to="/my-listings" className="nav-link">
+                    My Listings
+                </Link>
+                <Link to="/buyer-requests" className="nav-link">
+                    My Purchase Requests
+                </Link>
+                <Link to="/seller-requests" className="nav-link">
+                    Seller Requests
+                </Link>
+                <Link to="/dashboard" className="nav-link">
+                    Dashboard
+                </Link>
                 <button
                   className="btn btn-outline-danger rounded-pill px-4"
                   onClick={handleLogout}

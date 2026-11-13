@@ -26,8 +26,13 @@ from app.services.mobile_service import (
     delete_mobile,
     get_mobile_details,
     get_mobiles,
+    get_my_mobiles,
     update_mobile,
 )
+from sqlalchemy import func, select
+
+from app.models.mobile import Mobile
+from app.models.purchase_request import PurchaseRequest
 
 logger = logging.getLogger(__name__)
 
@@ -83,9 +88,42 @@ async def read_valid_images(
                 detail="Each image must be smaller than 5 MB",
             )
 
+        if not validate_image_signature(
+            content,
+            image.content_type,
+            ):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid image file. The file content does not match its image type.",
+            )
+        
         image_contents.append(content)
 
     return image_contents
+
+
+def validate_image_signature(
+    content: bytes,
+    content_type: str,
+) -> bool:
+    """Check whether the uploaded file matches its claimed image type."""
+
+    if content_type == "image/jpeg":
+        return content.startswith(b"\xff\xd8\xff")
+
+    if content_type == "image/png":
+        return content.startswith(
+            b"\x89PNG\r\n\x1a\n"
+        )
+
+    if content_type == "image/webp":
+        return (
+            len(content) >= 12
+            and content.startswith(b"RIFF")
+            and content[8:12] == b"WEBP"
+        )
+
+    return False
 
 
 @router.post(
@@ -163,6 +201,90 @@ def list_mobile_listings(
         page_size=page_size,
         sort_by=sort_by,
     )
+
+
+@router.get(
+    "/my-listings",
+    response_model=MobileListResponse,
+)
+def list_my_mobile_listings(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return get_my_mobiles(
+        db=db,
+        seller=current_user,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get("/dashboard/summary")
+def get_dashboard_summary(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    # Seller listing statistics
+    total_listings = db.scalar(
+        select(func.count())
+        .select_from(Mobile)
+        .where(
+            Mobile.seller_id == current_user.id,
+            Mobile.status != "removed",
+        )
+    ) or 0
+
+    available_listings = db.scalar(
+        select(func.count())
+        .select_from(Mobile)
+        .where(
+            Mobile.seller_id == current_user.id,
+            Mobile.status == "available",
+        )
+    ) or 0
+
+    sold_listings = db.scalar(
+        select(func.count())
+        .select_from(Mobile)
+        .where(
+            Mobile.seller_id == current_user.id,
+            Mobile.status == "sold",
+        )
+    ) or 0
+
+    # Incoming requests for this seller
+    incoming_requests = db.scalar(
+        select(func.count())
+        .select_from(PurchaseRequest)
+        .where(PurchaseRequest.seller_id == current_user.id)
+    ) or 0
+
+    pending_requests = db.scalar(
+        select(func.count())
+        .select_from(PurchaseRequest)
+        .where(
+            PurchaseRequest.seller_id == current_user.id,
+            PurchaseRequest.status == "pending",
+        )
+    ) or 0
+
+    # Requests submitted by this buyer
+    my_purchase_requests = db.scalar(
+        select(func.count())
+        .select_from(PurchaseRequest)
+        .where(PurchaseRequest.buyer_id == current_user.id)
+    ) or 0
+
+    return {
+        "total_listings": total_listings,
+        "available_listings": available_listings,
+        "sold_listings": sold_listings,
+        "incoming_requests": incoming_requests,
+        "pending_requests": pending_requests,
+        "my_purchase_requests": my_purchase_requests,
+    }
 
 
 @router.get(
