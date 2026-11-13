@@ -1,11 +1,20 @@
 
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
 venv/
+.venv/
+
+# Environment variables
 .env
+.env.*
+!.env.example
+
+# Testing
 .pytest_cache/
 .ruff_cache/
+.coverage
+htmlcov/
 
 # Node
 node_modules/
@@ -19,10 +28,6 @@ blob-report/
 # IDE
 .vscode/
 .idea/
-
-# Environment
-.env.*
-!.env.example
 
 # Operating system
 .DS_Store
